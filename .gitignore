@@ -1,0 +1,44 @@
+# Xcode
+DerivedData/
+build/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift PM
+.build/
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+**/.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# IDE
+.idea/
+*.swp
+*~
+
+# Python export artifacts
+*.ply
+*.npz
+*.npy
+__pycache__/
+.venv/
+venv/
+
+# Secrets
+*.p12
+*.mobileprovision
+AuthKey_*.p8
