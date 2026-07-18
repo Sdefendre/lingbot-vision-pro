@@ -1,5 +1,7 @@
 # LingBot Spatial
 
+![LingBot Vision Pro — live 3D scene reconstruction on Apple Vision Pro](docs-preview.png)
+
 **Streaming 3D reconstruction for Apple Vision Pro** — an immersive spatial demo inspired by [LingBot-Map](https://github.com/Robbyant/lingbot-map) (Robbyant), the feed-forward Geometric Context Transformer for reconstructing scenes from streaming video.
 
 Put on your Apple Vision Pro, open **LingBot Spatial**, pick a scene, hit **Play Stream**, then **Enter Immersive Space**. Geometry, camera trajectory, and keyframe frustums grow around you like a live map of the world.
@@ -132,6 +134,12 @@ Paper: *Geometric Context Transformer for Streaming 3D Reconstruction* — [arXi
 - Invite issued to **[@jchacker5](https://github.com/jchacker5)** (write access on the lingbot-map fork and this app)
 
 Accept the GitHub invitation email / notification to get write access.
+
+---
+
+## Featured on
+
+LingBot Vision Pro is showcased on [Defendre Solutions](https://defendresolutions.com/results) — see the case study at [defendresolutions.com/projects/lingbot-vision-pro](https://defendresolutions.com/projects/lingbot-vision-pro).
 
 ---
 
