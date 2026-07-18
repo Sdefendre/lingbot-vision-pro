@@ -341,7 +341,7 @@ private struct TechFooter: View {
                 .foregroundStyle(.secondary)
             Link("github.com/Robbyant/lingbot-map", destination: URL(string: "https://github.com/Robbyant/lingbot-map")!)
                 .font(.footnote)
-            Link("github.com/Sdefendre/lingbot-spatial", destination: URL(string: "https://github.com/Sdefendre/lingbot-spatial")!)
+            Link("github.com/Sdefendre/lingbot-vision-pro", destination: URL(string: "https://github.com/Sdefendre/lingbot-vision-pro")!)
                 .font(.footnote)
         }
         .padding(.top, 8)

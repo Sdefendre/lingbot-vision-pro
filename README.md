@@ -9,7 +9,7 @@ Put on your Apple Vision Pro, open **LingBot Spatial**, pick a scene, hit **Play
 | Platform | visionOS 2.0+ (Apple Vision Pro) |
 | Stack | SwiftUI · RealityKit · Observation |
 | Upstream | [Robbyant/lingbot-map](https://github.com/Robbyant/lingbot-map) (Apache-2.0) |
-| This app | [Sdefendre/lingbot-spatial](https://github.com/Sdefendre/lingbot-spatial) |
+| This app | [Sdefendre/lingbot-vision-pro](https://github.com/Sdefendre/lingbot-vision-pro) |
 
 ---
 
@@ -63,8 +63,8 @@ python scripts/export_ply_for_vision.py \
 ### Steps
 1. Clone this repo  
    ```bash
-   git clone https://github.com/Sdefendre/lingbot-spatial.git
-   cd lingbot-spatial
+   git clone https://github.com/Sdefendre/lingbot-vision-pro.git
+   cd lingbot-vision-pro
    open LingBotSpatial.xcodeproj
    ```
 2. In Xcode, select the **LingBotSpatial** target → **Signing & Capabilities**  
