@@ -336,12 +336,17 @@ private struct TechFooter: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Technology")
                 .font(.headline)
-            Text("Inspired by LingBot-Map (Robbyant) — Geometric Context Transformer for streaming 3D reconstruction. Demo scenes synthesize poses + dense colored points on-device so you can experience the full spatial UX without a CUDA GPU. Drop real PLY exports from the Python pipeline into the app for production data.")
+            Text("Inspired by LingBot-Map (Robbyant) — Geometric Context Transformer for streaming 3D reconstruction. Demo scenes synthesize poses + dense colored points on-device so you can experience the full spatial UX without a CUDA GPU. Real geometry can be converted with scripts/export_ply_for_vision.py and loaded via PLYLoader.")
                 .font(.footnote)
+                .foregroundStyle(.secondary)
+            Text("Built by Steve Defendre · Defendre Solutions")
+                .font(.footnote.weight(.medium))
                 .foregroundStyle(.secondary)
             Link("github.com/Robbyant/lingbot-map", destination: URL(string: "https://github.com/Robbyant/lingbot-map")!)
                 .font(.footnote)
             Link("github.com/Sdefendre/lingbot-vision-pro", destination: URL(string: "https://github.com/Sdefendre/lingbot-vision-pro")!)
+                .font(.footnote)
+            Link("defendresolutions.com/projects/lingbot-vision-pro", destination: URL(string: "https://www.defendresolutions.com/projects/lingbot-vision-pro")!)
                 .font(.footnote)
         }
         .padding(.top, 8)

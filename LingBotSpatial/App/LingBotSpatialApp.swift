@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// LingBot Spatial — Immersive streaming 3D reconstruction for Apple Vision Pro.
-/// Powered by concepts from LingBot-Map (Robbyant): Geometric Context Transformer
-/// for feed-forward streaming scene reconstruction.
+/// Inspired by LingBot-Map (Robbyant): Geometric Context Transformer for
+/// feed-forward streaming scene reconstruction. Built by Steve Defendre /
+/// Defendre Solutions.
 @main
 struct LingBotSpatialApp: App {
     @State private var session = ReconstructionSession()

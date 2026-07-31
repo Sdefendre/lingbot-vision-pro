@@ -7,6 +7,13 @@ import UIKit
 struct ImmersiveReconstructionView: View {
     @Environment(ReconstructionSession.self) private var session
 
+    /// User placement offset applied on top of the default stand-in pose.
+    @State private var userOffset = SIMD3<Float>(0, 0, 0)
+    /// Extra uniform scale from pinch-magnify (1 = fit-to-bounds only).
+    @State private var userScale: Float = 1
+    @State private var dragStartOffset: SIMD3<Float>?
+    @State private var magnifyStartScale: Float?
+
     var body: some View {
         RealityView { content, attachments in
             let root = Entity()
@@ -35,11 +42,13 @@ struct ImmersiveReconstructionView: View {
                   let cloud = root.findEntity(named: "PointCloudRoot"),
                   let traj = root.findEntity(named: "TrajectoryRoot") else { return }
 
-            // Fit scene into ~2.2 m box
+            // Fit scene into ~2.2 m box, then apply user pinch scale
             let extent = session.boundsExtent
             let maxDim = max(extent.x, max(extent.y, max(extent.z, 0.5)))
-            let s = 2.2 / maxDim
-            root.scale = SIMD3<Float>(repeating: min(max(s, 0.08), 1.2))
+            let fit = 2.2 / maxDim
+            let s = min(max(fit * userScale, 0.05), 2.5)
+            root.scale = SIMD3<Float>(repeating: s)
+            root.position = SIMD3<Float>(0, 0.95, -2.2) + userOffset
 
             let center = session.boundsCenter
             cloud.position = -center
@@ -71,11 +80,33 @@ struct ImmersiveReconstructionView: View {
             DragGesture()
                 .targetedToAnyEntity()
                 .onChanged { value in
-                    guard let root = value.entity.scene?.findEntity(named: "ImmersiveRoot") else { return }
+                    if dragStartOffset == nil {
+                        dragStartOffset = userOffset
+                    }
+                    guard let start = dragStartOffset else { return }
                     let t = value.translation
-                    // Map 2D drag to gentle XZ / Y placement in meters
-                    root.position.x += Float(t.width) * 0.00015
-                    root.position.y += Float(-t.height) * 0.00015
+                    // Map 2D drag to gentle X / Y placement in meters
+                    userOffset = start + SIMD3<Float>(
+                        Float(t.width) * 0.0015,
+                        Float(-t.height) * 0.0015,
+                        0
+                    )
+                }
+                .onEnded { _ in
+                    dragStartOffset = nil
+                }
+        )
+        .simultaneousGesture(
+            MagnifyGesture()
+                .onChanged { value in
+                    if magnifyStartScale == nil {
+                        magnifyStartScale = userScale
+                    }
+                    guard let start = magnifyStartScale else { return }
+                    userScale = min(max(start * Float(value.magnification), 0.25), 4)
+                }
+                .onEnded { _ in
+                    magnifyStartScale = nil
                 }
         )
     }

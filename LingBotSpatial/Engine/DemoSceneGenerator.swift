@@ -5,7 +5,8 @@ import simd
 /// LingBot-Map outputs (poses + dense colored points + confidence + keyframes).
 ///
 /// This powers the Vision Pro demo without requiring a CUDA GPU on-device.
-/// Export real NPZ/PLY from `lingbot-map` and drop them in Resources for live data.
+/// For real geometry, convert LingBot-Map predictions with
+/// `scripts/export_ply_for_vision.py` and load via `PLYLoader`.
 enum DemoSceneGenerator {
 
     static func generate(scene: DemoSceneKind) -> [StreamFrame] {
