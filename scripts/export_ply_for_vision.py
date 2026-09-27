@@ -39,11 +39,25 @@ def _first_key(d: dict, names: Tuple[str, ...]):
     return None
 
 
+def normalize_colors(colors: np.ndarray) -> np.ndarray:
+    """Accept channel-last RGB/RGBA arrays in normalized or byte range."""
+    colors = np.asarray(colors)
+    byte_range = np.issubdtype(colors.dtype, np.integer)
+    colors = colors.astype(np.float32)
+    if colors.ndim < 2 or colors.shape[-1] not in (3, 4):
+        raise ValueError("Colors must have a final RGB or RGBA channel dimension")
+    colors = colors[..., :3].reshape(-1, 3)
+    if byte_range or (colors.size and colors.max() > 1.5):
+        colors = colors / 255.0
+    return colors
+
+
 def load_npz(path: str) -> Tuple[np.ndarray, Optional[np.ndarray], Optional[np.ndarray]]:
-    data = np.load(path, allow_pickle=True)
+    data = np.load(path, allow_pickle=False)
     # npz or npy
     if hasattr(data, "files"):
-        mapping = {k: data[k] for k in data.files}
+        with data:
+            mapping = {k: data[k] for k in data.files}
     else:
         mapping = {"arr": np.asarray(data)}
 
@@ -55,12 +69,7 @@ def load_npz(path: str) -> Tuple[np.ndarray, Optional[np.ndarray], Optional[np.n
 
     cols = _first_key(mapping, ("colors", "point_colors", "rgb", "images"))
     if cols is not None:
-        cols = np.asarray(cols, dtype=np.float32).reshape(-1, -1)
-        if cols.shape[-1] > 3:
-            cols = cols[..., :3]
-        cols = cols.reshape(-1, 3)
-        if cols.max() > 1.5:
-            cols = cols / 255.0
+        cols = normalize_colors(cols)
         if cols.shape[0] != pts.shape[0]:
             # broadcast or trim
             n = min(cols.shape[0], pts.shape[0])
@@ -118,11 +127,11 @@ def main():
 
     if args.xyzrgb:
         arr = np.load(args.xyzrgb)
-        arr = np.asarray(arr, dtype=np.float32)
+        arr = np.asarray(arr)
         if arr.ndim != 2 or arr.shape[1] < 3:
             sys.exit("xyzrgb array must be N×3 or N×6+")
-        pts = arr[:, :3]
-        cols = arr[:, 3:6] if arr.shape[1] >= 6 else None
+        pts = arr[:, :3].astype(np.float32)
+        cols = normalize_colors(arr[:, 3:6]) if arr.shape[1] >= 6 else None
         conf = None
         all_pts.append(pts)
         all_cols.append(cols)
@@ -144,6 +153,9 @@ def main():
             print(f"loaded {p}: {len(pts)} pts")
     else:
         sys.exit("Provide --predictions_dir or --xyzrgb")
+
+    if not all_pts:
+        sys.exit("No readable point arrays found; check the skipped frame errors above")
 
     pts = np.concatenate(all_pts, axis=0)
     # colors

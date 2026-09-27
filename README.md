@@ -124,11 +124,20 @@ python scripts/export_ply_for_vision.py \
   --conf_threshold 1.5
 ```
 
+The exporter accepts channel-last RGB/RGBA prediction arrays and normalized or
+byte-range RGB in `--xyzrgb` arrays. Unreadable prediction files are reported and
+skipped; if none can be read, the command exits without writing an output.
+
 Supported PLY layout (ASCII):
 
 ```text
 x y z [red green blue] [confidence]
 ```
+
+The PLY reader uses named vertex properties in any order, preserves dark byte
+colors, and rejects incomplete headers, rows, or non-finite coordinates. Vertex
+data must precede other nonempty elements. Binary PLY and vertex list properties
+are not supported.
 
 Also accepts a single `N×3` / `N×6` `.npy` via `--xyzrgb`. Full script docs: [`scripts/export_ply_for_vision.py`](scripts/export_ply_for_vision.py).
 

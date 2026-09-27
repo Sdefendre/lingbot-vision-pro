@@ -1,8 +1,8 @@
 import Foundation
 import simd
 
-/// Minimal ASCII/binary-lite PLY loader for point clouds exported from LingBot-Map.
-/// Expected properties: x y z [red green blue | r g b] [confidence|nx…]
+/// ASCII PLY loader for point clouds exported from LingBot-Map.
+/// Expected vertex properties: x y z [red green blue | r g b] [confidence|conf]
 enum PLYLoader {
     enum PLYError: Error, LocalizedError {
         case unreadable
@@ -35,20 +35,38 @@ enum PLYLoader {
         }
 
         var vertexCount = 0
-        var headerEnd = 0
+        var headerEnd: Int?
         var formatASCII = false
         var properties: [String] = []
+        var propertyTypes: [String] = []
+        var currentElement: String?
+        var sawVertices = false
 
         for (idx, raw) in lines.enumerated() {
             let line = raw.trimmingCharacters(in: .whitespaces)
-            if line.hasPrefix("format ascii") { formatASCII = true }
-            if line.hasPrefix("element vertex") {
-                let parts = line.split(separator: " ")
-                if let last = parts.last, let n = Int(last) { vertexCount = n }
+            let parts = line.split(whereSeparator: \.isWhitespace).map(String.init)
+            if parts == ["format", "ascii", "1.0"] { formatASCII = true }
+            if parts.first == "element" {
+                guard parts.count == 3, let count = Int(parts[2]), count >= 0 else {
+                    throw PLYError.missingHeader
+                }
+                currentElement = parts[1]
+                if currentElement == "vertex" {
+                    guard !sawVertices else { throw PLYError.unsupported }
+                    sawVertices = true
+                    vertexCount = count
+                } else if !sawVertices && count > 0 {
+                    // Vertex rows must be first; do not mistake another element's
+                    // payload for coordinates.
+                    throw PLYError.unsupported
+                }
             }
-            if line.hasPrefix("property") {
-                let parts = line.split(separator: " ")
-                if let name = parts.last { properties.append(String(name)) }
+            if parts.first == "property", currentElement == "vertex" {
+                guard parts.count == 3, parts[1] != "list" else {
+                    throw PLYError.unsupported
+                }
+                propertyTypes.append(parts[1])
+                properties.append(parts[2])
             }
             if line == "end_header" {
                 headerEnd = idx
@@ -56,41 +74,52 @@ enum PLYLoader {
             }
         }
 
+        guard let headerEnd else { throw PLYError.missingHeader }
         guard formatASCII else { throw PLYError.unsupported }
         guard vertexCount > 0 else { throw PLYError.empty }
 
-        let xi = properties.firstIndex(of: "x") ?? 0
-        let yi = properties.firstIndex(of: "y") ?? 1
-        let zi = properties.firstIndex(of: "z") ?? 2
+        guard let xi = properties.firstIndex(of: "x"),
+              let yi = properties.firstIndex(of: "y"),
+              let zi = properties.firstIndex(of: "z") else {
+            throw PLYError.unsupported
+        }
         let ri = properties.firstIndex(of: "red") ?? properties.firstIndex(of: "r")
         let gi = properties.firstIndex(of: "green") ?? properties.firstIndex(of: "g")
         let bi = properties.firstIndex(of: "blue") ?? properties.firstIndex(of: "b")
         let ci = properties.firstIndex(of: "confidence") ?? properties.firstIndex(of: "conf")
 
         var points: [ReconPoint] = []
+        let start = headerEnd + 1
+        guard vertexCount <= lines.count - start else { throw PLYError.unreadable }
         points.reserveCapacity(vertexCount)
 
-        let start = headerEnd + 1
-        let end = min(start + vertexCount, lines.count)
+        let end = start + vertexCount
         for i in start..<end {
             let parts = lines[i].split(whereSeparator: { $0 == " " || $0 == "\t" }).map(String.init)
-            guard parts.count > zi,
+            guard parts.count >= properties.count,
                   let x = Float(parts[xi]),
                   let y = Float(parts[yi]),
-                  let z = Float(parts[zi]) else { continue }
+                  let z = Float(parts[zi]),
+                  x.isFinite, y.isFinite, z.isFinite else { throw PLYError.unreadable }
 
             var color = SIMD3<Float>(0.7, 0.7, 0.7)
-            if let ri, let gi, let bi, parts.count > bi {
-                let r = Float(parts[ri]) ?? 180
-                let g = Float(parts[gi]) ?? 180
-                let b = Float(parts[bi]) ?? 180
-                // Accept 0–1 or 0–255
-                let scale: Float = r > 1.5 || g > 1.5 || b > 1.5 ? 255 : 1
-                color = SIMD3(r / scale, g / scale, b / scale)
+            if let ri, let gi, let bi {
+                guard let r = Float(parts[ri]), let g = Float(parts[gi]),
+                      let b = Float(parts[bi]), r.isFinite, g.isFinite, b.isFinite else {
+                    throw PLYError.unreadable
+                }
+                // Byte properties stay in byte range even for very dark colors.
+                let byteColor = [ri, gi, bi].allSatisfy {
+                    ["uchar", "uint8"].contains(propertyTypes[$0])
+                }
+                let scale: Float = byteColor || r > 1.5 || g > 1.5 || b > 1.5 ? 255 : 1
+                color = simd_clamp(SIMD3(r / scale, g / scale, b / scale),
+                                   SIMD3(repeating: 0), SIMD3(repeating: 1))
             }
 
             var conf: Float = 0.8
-            if let ci, parts.count > ci, let c = Float(parts[ci]) {
+            if let ci {
+                guard let c = Float(parts[ci]), c.isFinite else { throw PLYError.unreadable }
                 conf = c
             }
 
