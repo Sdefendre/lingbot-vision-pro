@@ -32,7 +32,11 @@ case "missing-end":
     do {
         _ = try PLYLoader.parseASCII("ply\nformat ascii 1.0\nelement vertex 1\nproperty float x\nproperty float y\nproperty float z\n1 2 3")
         fatalError("Incomplete header accepted")
-    } catch {}
+    } catch PLYLoader.PLYError.missingHeader {
+        // A truncated header must be diagnosed before attempting vertex parsing.
+    } catch {
+        fatalError("Wrong error for incomplete header: \(error)")
+    }
 case "dark-colors":
     let points = try PLYLoader.parseASCII(ply("property float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue", "1 2 3 1 0 1"))
     precondition(points[0].color == SIMD3<Float>(1 / 255, 0, 1 / 255))
