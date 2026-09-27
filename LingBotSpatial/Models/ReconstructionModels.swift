@@ -24,7 +24,7 @@ struct CameraPose: Sendable, Equatable, Identifiable {
     var isKeyframe: Bool
 
     var transform: simd_float4x4 {
-        simd_float4x4(rotation) * simd_float4x4(translation: position)
+        simd_float4x4(translation: position) * simd_float4x4(rotation)
     }
 
     var lookDirection: SIMD3<Float> {
@@ -224,9 +224,5 @@ extension simd_float4x4 {
     init(translation t: SIMD3<Float>) {
         self = matrix_identity_float4x4
         columns.3 = SIMD4<Float>(t.x, t.y, t.z, 1)
-    }
-
-    init(_ q: simd_quatf) {
-        self = matrix_float4x4(q)
     }
 }

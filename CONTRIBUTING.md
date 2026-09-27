@@ -24,12 +24,21 @@ pip install numpy
 python scripts/export_ply_for_vision.py --help
 ```
 
+## Geometry and export regression checks
+
+These run on macOS with Command Line Tools and Python/NumPy; they do not replace
+a visionOS Simulator build:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py' -v
+bash scripts/test_geometry.sh
+```
+
 ## Suggested contribution areas
 
 - Document picker / share-sheet import wired to `PLYLoader`  
 - Higher-density point rendering (`LowLevelMesh` / metal paths) with a quality fallback  
 - Live immersion style picker (mixed / progressive / full) bound to `ImmersionMode`  
-- Unit tests for `PLYLoader.parseASCII` and pose math helpers  
 - Additional demo scenes that stay readable in mixed immersion  
 
 ## PR checklist
